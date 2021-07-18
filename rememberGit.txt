@@ -1,0 +1,7 @@
+Remember flow:
+git init
+git add .
+git commit -m "new file"
+git push
+
+
