@@ -52,7 +52,7 @@ walk direction world = world {mutableMessage="walking action - changes the state
 
 -- Helpers 
 showLookWorldMsg :: World -> String
-showLookWorldMsg world = "(showLookWorldMsg) => " ++ mutableMessage world 
+showLookWorldMsg world = "(showLookWorldMsg) => " ++ mutableMessage world ++ "\n"
 
 ------------------------------------------------------------------------
 -- MAIN.hs LOGIC 
@@ -63,22 +63,22 @@ data Event =
   | EventWalk String
   deriving(Eq,Show)
 
-actualitzarDomini :: World -> Event -> World
-actualitzarDomini world (EventLook) =  look world                                                                                 
-actualitzarDomini world (EventWalk direction)  =  walk direction world
-actualitzarDomini world _  = world 
+updateDomain :: World -> Event -> World
+updateDomain world (EventLook) =  look world                                                                                 
+updateDomain world (EventWalk direction)  =  walk direction world
+updateDomain world _  = world 
 
-llegirComanda = do
+readCommand = do
                 input <- read' 
                 if input == "look" then
-                   return [EventLook]
+                   return EventLook
                 else if "walk" `isPrefixOf` input then
-                  return [EventWalk ((words input) !! 1)]  
+                  return (EventWalk ((words input) !! 1)) 
                 else if input == ":quit" then
-                  return [EventExit]
+                  return EventExit
                 else 
                   --putStrLn ("Entra comanda valida!")
-                  llegirComanda
+                  readCommand
 
 read' :: IO String
 read' = putStr "WORLD> "
@@ -91,9 +91,10 @@ theWorld = World {loc = "living-room", descLlocs = nodes, mapaDelsLlocs = edges,
 main :: IO ()
 main = run theWorld presentationIO
 
+run :: World -> (World -> IO a) -> IO b
 run dom showDom = do
-       event <- llegirComanda
-       dom' <- actualitzarDomini dom event 
+       event <- readCommand
+       let dom' = updateDomain dom event   -- SOLVED! - It must be "let to work!" Otherwise,  "dom' <- updateDomain dom event", forces updateDomain :: World -> Event ->  IO World
        showDom dom'
        run dom' showDom
 
